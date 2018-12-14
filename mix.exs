@@ -7,7 +7,7 @@ defmodule Bip32.Mixfile do
       version: "0.1.0",
       description: "Bitcoin HD Wallets BIP32 Elixir implementation",
       package: package(),
-      elixir: "~> 1.5",
+      elixir: "~> 1.7.4",
       start_permanent: Mix.env == :prod,
       deps: deps()
     ]
