@@ -18,7 +18,7 @@ by adding `bip32` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:bip32, [github: "wuminzhe/bip32"]}
+    {:bip32, git: "https://github.com/imerkle/bip32.git"}
   ]
 end
 ```
