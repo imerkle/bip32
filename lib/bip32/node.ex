@@ -57,12 +57,11 @@ defmodule Bip32.Node do
     chain_code = String.slice(bip32, 26..89)
     key = String.slice(bip32, 90..-1)
 
-    if String.slice(key, 0..1) == "00" do
+    {private_key, public_key} = if String.slice(key, 0..1) == "00" do
       private_key = String.slice(key, 2..-1)
-      public_key  = Bip32.Utils.get_public_key_from_private_key(private_key)
+      {private_key, Bip32.Utils.get_public_key_from_private_key(private_key)}
     else
-      private_key = nil
-      public_key  = key
+      {nil, key}
     end
 
     %Bip32.Node{
