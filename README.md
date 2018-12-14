@@ -1,5 +1,7 @@
 # Bip32
 
+[![Build Status](https://travis-ci.com/imerkle/bip32.svg?branch=master)](https://travis-ci.com/imerkle/bip32)
+
 Another Bip32 implement but in elixir lang. 
 
 less code, easy to read.
