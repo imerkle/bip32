@@ -1,5 +1,5 @@
 defmodule Bip32.Node do
-  defstruct [:private_key, :public_key, :chain_code, :depth, :index, :parent]
+  defstruct [:private_key, :public_key, :public_key_uncompressed, :chain_code, :depth, :index, :parent]
 
   # https://bitcoin.org/img/dev/en-hd-root-keys.svg
   def generate_master_node(seed_hex) do
@@ -13,10 +13,12 @@ defmodule Bip32.Node do
 
     # get the master public key from master private key
     master_public_key_hex = Bip32.Utils.get_public_key_from_private_key(master_private_key_hex)
+    master_public_key_hex_uncompressed = Bip32.Utils.get_public_key_from_private_key(master_private_key_hex, :uncompressed)
 
     %Bip32.Node{
       private_key: master_private_key_hex, 
       public_key: master_public_key_hex, 
+      public_key_uncompressed: master_public_key_hex_uncompressed, 
       chain_code: master_chain_code_hex,
       depth: 0,
       index: 0
@@ -107,10 +109,12 @@ defmodule Bip32.Node do
 
     # get the child public key
     child_public_key_hex = Bip32.Utils.get_public_key_from_private_key(child_private_key_hex)
+    child_public_key_hex_uncompressed = Bip32.Utils.get_public_key_from_private_key(child_private_key_hex, :uncompressed)
 
     %Bip32.Node{
       private_key: (if only_public, do: nil, else: child_private_key_hex),
-      public_key: child_public_key_hex, 
+      public_key: child_public_key_hex,
+      public_key_uncompressed: child_public_key_hex_uncompressed,
       chain_code: child_chain_code_hex,
       depth: node.depth + 1,
       index: i,

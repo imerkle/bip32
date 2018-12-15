@@ -49,11 +49,11 @@ defmodule Bip32.Utils do
     String.slice(hash, 0..7)
   end
 
-  def get_public_key_from_private_key(private_key_hex) do
+  def get_public_key_from_private_key(private_key_hex, compression \\ :compressed) do
     {:ok, pubkey} = 
       private_key_hex
       |> pack_h
-      |> :libsecp256k1.ec_pubkey_create(:compressed)
+      |> :libsecp256k1.ec_pubkey_create(compression)
 
     unpack_h(pubkey)
   end
