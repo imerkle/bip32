@@ -47,7 +47,7 @@ defmodule Bip32.Node do
     
   end
 
-  def from_bip32(bip32) do
+  def from_bip32(bip32, curve_name \\ :secp256k1) do
     decoded = "0" <> (Base58.decode(bip32) |> Integer.to_string(16))
     # checksum = String.slice(decoded, -8..-1)
     bip32 = String.slice(decoded, 0..-9) |> String.downcase
@@ -72,6 +72,7 @@ defmodule Bip32.Node do
       chain_code: chain_code,
       depth: String.to_integer(depth, 16),
       index: String.to_integer(child_number, 16),
+      curve_name: curve_name,
     }
   end
 
