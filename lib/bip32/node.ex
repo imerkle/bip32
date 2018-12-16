@@ -1,19 +1,20 @@
 defmodule Bip32.Node do
-  defstruct [:private_key, :public_key, :public_key_uncompressed, :chain_code, :depth, :index, :parent]
+  defstruct [:private_key, :public_key, :public_key_uncompressed, :chain_code, :depth, :index, :parent, :curve_name]
 
+  #curve_key = https://github.com/satoshilabs/slips/blob/master/slip-0010.md
   # https://bitcoin.org/img/dev/en-hd-root-keys.svg
-  def generate_master_node(seed_hex) do
+  def generate_master_node(seed_hex, curve_name \\ :secp256k1, curve_key \\ "Bitcoin seed") do
     # hash the seed
     seed = Bip32.Utils.pack_h(seed_hex)
-    one_way_hash = Bip32.Utils.hmac_sha512("Bitcoin seed", seed)
+    one_way_hash = Bip32.Utils.hmac_sha512(curve_key, seed)
 
     # get the private key and chain code
     master_private_key_hex  = String.slice(one_way_hash, 0..63) # left is the private key
     master_chain_code_hex = String.slice(one_way_hash, 64..127) # right is the chain code
 
     # get the master public key from master private key
-    master_public_key_hex = Bip32.Utils.get_public_key_from_private_key(master_private_key_hex)
-    master_public_key_hex_uncompressed = Bip32.Utils.get_public_key_from_private_key(master_private_key_hex, :uncompressed)
+    master_public_key_hex = Bip32.Utils.get_public_key_from_private_key(master_private_key_hex, curve_name)
+    master_public_key_hex_uncompressed = Bip32.Utils.get_public_key_from_private_key(master_private_key_hex, curve_name, :uncompressed)
 
     %Bip32.Node{
       private_key: master_private_key_hex, 
@@ -21,13 +22,12 @@ defmodule Bip32.Node do
       public_key_uncompressed: master_public_key_hex_uncompressed, 
       chain_code: master_chain_code_hex,
       depth: 0,
-      index: 0
+      index: 0,
+      curve_name: curve_name,
     }
   end
 
-  def to_bip32(node, network \\ "mainnet") do
-    version_prv = if network == "mainnet", do: "0488ade4", else: "04358394"
-    version_pub = if network == "mainnet", do: "0488b21e", else: "043587cf"
+  def to_bip32(node, version_prv \\ "0488ade4", version_pub \\ "0488b21e") do
     depth = node.depth |> Integer.to_string(16) |> String.pad_leading(2, "0") |> String.downcase
     parent_key_fingerprint = ( if node.depth == 0, do: "00000000", else: Bip32.Utils.fingerprint(node.parent.public_key) )
     child_number = node.index |> Integer.to_string(16) |> String.pad_leading(8, "0") |> String.downcase
@@ -71,7 +71,7 @@ defmodule Bip32.Node do
       public_key: public_key, 
       chain_code: chain_code,
       depth: String.to_integer(depth, 16),
-      index: String.to_integer(child_number, 16)
+      index: String.to_integer(child_number, 16),
     }
   end
 
@@ -109,7 +109,7 @@ defmodule Bip32.Node do
 
     # get the child public key
     child_public_key_hex = Bip32.Utils.get_public_key_from_private_key(child_private_key_hex)
-    child_public_key_hex_uncompressed = Bip32.Utils.get_public_key_from_private_key(child_private_key_hex, :uncompressed)
+    child_public_key_hex_uncompressed = Bip32.Utils.get_public_key_from_private_key(child_private_key_hex, node.curve_name, :uncompressed)
 
     %Bip32.Node{
       private_key: (if only_public, do: nil, else: child_private_key_hex),
@@ -118,7 +118,8 @@ defmodule Bip32.Node do
       chain_code: child_chain_code_hex,
       depth: node.depth + 1,
       index: i,
-      parent: node
+      curve_name: node.curve_name,
+      parent: node,
     }
   end
 

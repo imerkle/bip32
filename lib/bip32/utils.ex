@@ -49,15 +49,23 @@ defmodule Bip32.Utils do
     String.slice(hash, 0..7)
   end
 
-  def get_public_key_from_private_key(private_key_hex, compression \\ :compressed) do
-    {:ok, pubkey} = 
-      private_key_hex
-      |> pack_h
-      |> :libsecp256k1.ec_pubkey_create(compression)
+  def get_public_key_from_private_key(private_key_hex, curve_name \\ :secp256k1, compression \\ :compressed) do
 
+    priv = private_key_hex |> pack_h
+    {pubkey, _p} = :crypto.generate_key(:ecdh, curve_name, priv)
+    pubkey = if compression == :compressed do pubkey |> compress() else pubkey end
     unpack_h(pubkey)
   end
-
+  
+  #https://github.com/aeternity/elixir-wallet/blob/dfacf31f689c9c2b14e076ce97f889ac0a49f656/lib/aewallet/key_pair.ex#L358
+  def compress(<<_prefix::size(8), x_coordinate::size(256), y_coordinate::size(256)>>) do
+    prefix = case rem(y_coordinate, 2) do
+      0 -> 0x02
+      _ -> 0x03
+    end
+    <<prefix::size(8), x_coordinate::size(256)>>
+  end
+  
   # ruby: [i].pack('N')
   def i_as_bytes(i) do
     Integer.to_string(i, 16) |> String.pad_leading(8, "0") |> Base.decode16!(case: :upper)

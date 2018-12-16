@@ -30,8 +30,6 @@ defmodule Bip32.Mixfile do
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
-    [
-      {:libsecp256k1, "~> 0.1.9"},
-    ]
+    []
   end
 end
