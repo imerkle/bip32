@@ -61,7 +61,7 @@ defmodule Bip32.Node do
 
     {private_key, public_key} = if String.slice(key, 0..1) == "00" do
       private_key = String.slice(key, 2..-1)
-      {private_key, Bip32.Utils.get_public_key_from_private_key(private_key)}
+      {private_key, Bip32.Utils.get_public_key_from_private_key(private_key, curve_name)}
     else
       {nil, key}
     end
@@ -109,7 +109,7 @@ defmodule Bip32.Node do
     child_chain_code_hex = child_chain_code |> Integer.to_string(16) |> String.downcase |> String.pad_leading(64, "0")
 
     # get the child public key
-    child_public_key_hex = Bip32.Utils.get_public_key_from_private_key(child_private_key_hex)
+    child_public_key_hex = Bip32.Utils.get_public_key_from_private_key(child_private_key_hex, node.curve_name)
     child_public_key_hex_uncompressed = Bip32.Utils.get_public_key_from_private_key(child_private_key_hex, node.curve_name, :uncompressed)
 
     %Bip32.Node{
