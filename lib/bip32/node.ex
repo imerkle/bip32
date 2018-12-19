@@ -80,7 +80,8 @@ defmodule Bip32.Node do
     version <> depth <> parent_key_fingerprint <> child_number <> chain_code <> key_hex
   end
 
-  @order String.to_integer("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16)
+  @order_secp256k1 String.to_integer("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16)
+  @order_secp256r1 String.to_integer("ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551", 16)
 
   defp p_build_one_way_hash(private_key_hex, public_key_pub, chain_code_hex, i \\ 0)
   # hardened
@@ -99,9 +100,14 @@ defmodule Bip32.Node do
   def derive_child(node, i \\ 0, only_public \\ false) do
     one_way_hash = p_build_one_way_hash(node.private_key, node.public_key, node.chain_code, i)
     
+    order = case node.curve_name do
+      :secp256k1 -> @order_secp256k1
+      :secp256r1 -> @order_secp256r1
+      _-> @order_secp256k1
+    end
     # get the child private key
     left_int = one_way_hash |> String.slice(0..63) |> String.to_integer(16)
-    child_private_key = rem (left_int + String.to_integer(node.private_key, 16)), @order
+    child_private_key = rem (left_int + String.to_integer(node.private_key, 16)), order
     child_private_key_hex = child_private_key |> Integer.to_string(16) |> String.downcase |> String.pad_leading(64, "0")
 
     # get the child chain code

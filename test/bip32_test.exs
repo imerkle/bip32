@@ -109,4 +109,17 @@ defmodule Bip32Test do
     assert descendant_node.depth       == 2
     assert descendant_node.index       == 2147483651
   end
+  
+  test "secp256r1 derive" do
+    node = Bip32.Node.generate_master_node("27a718f64d256afa9d95a1d561f059f8a2488c87b2ff56eaeee1ff8dac465804a54400f70205ee698c1b3e2cad4c5b8117f892878dea6d585c6db7e42ab3dda1", :secp256r1, "Nist256p1 seed")
+    descendant_node = Bip32.Node.derive_descendant_by_path(node, "m/44'/888'/0'/0/0")
+    assert node.private_key == "4cd77b2ce020967696658e8817f6b693a453c76f7ee295c8d8b9c5de7e97966e"
+    assert descendant_node.index == 0
+    assert descendant_node.depth == 5
+    assert descendant_node.curve_name == :secp256r1
+    assert descendant_node.chain_code == "fc55225873440c25c393fe1f149718d37b85098b46ae3dda276eae6444f1612a"
+    assert descendant_node.private_key == "1060eeb4ed10c63680cf9570fc7c5fa2c9d911f33f60f379ce7107f2618e9651"
+    assert descendant_node.public_key == "03f7f87c8988579de62bd416958e8c27da8e7948a2639c1027eb37e386f10badcf"
+  end
+
 end
