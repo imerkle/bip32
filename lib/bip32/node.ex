@@ -7,19 +7,19 @@ defmodule Bip32.Node do
     # hash the seed
     seed = Bip32.Utils.pack_h(seed_hex)
     one_way_hash = Bip32.Utils.hmac_sha512(curve_key, seed)
-
     # get the private key and chain code
     master_private_key_hex  = String.slice(one_way_hash, 0..63) # left is the private key
     master_chain_code_hex = String.slice(one_way_hash, 64..127) # right is the chain code
+    IO.inspect master_private_key_hex
 
     # get the master public key from master private key
     master_public_key_hex = Bip32.Utils.get_public_key_from_private_key(master_private_key_hex, curve_name)
     master_public_key_hex_uncompressed = Bip32.Utils.get_public_key_from_private_key(master_private_key_hex, curve_name, :uncompressed)
 
     %Bip32.Node{
-      private_key: master_private_key_hex, 
-      public_key: master_public_key_hex, 
-      public_key_uncompressed: master_public_key_hex_uncompressed, 
+      private_key: master_private_key_hex,
+      public_key: master_public_key_hex,
+      public_key_uncompressed: master_public_key_hex_uncompressed,
       chain_code: master_chain_code_hex,
       depth: 0,
       index: 0,
@@ -44,7 +44,7 @@ defmodule Bip32.Node do
     else
       %{xpub: Bip32.Utils.checksum_base58(xpub), xprv: Bip32.Utils.checksum_base58(xprv)}
     end
-    
+
   end
 
   def from_bip32(bip32, curve_name \\ :secp256k1) do
@@ -67,8 +67,8 @@ defmodule Bip32.Node do
     end
 
     %Bip32.Node{
-      private_key: private_key, 
-      public_key: public_key, 
+      private_key: private_key,
+      public_key: public_key,
       chain_code: chain_code,
       depth: String.to_integer(depth, 16),
       index: String.to_integer(child_number, 16),
@@ -93,13 +93,14 @@ defmodule Bip32.Node do
   # normal
   defp p_build_one_way_hash(_, public_key_pub, chain_code_hex, i) when i >= 0 and i < 0x80000000 do
     message = Bip32.Utils.pack_h(public_key_pub) <> Bip32.Utils.i_as_bytes(i)
+    IO.inspect message
     Bip32.Utils.pack_h(chain_code_hex) |> Bip32.Utils.hmac_sha512(message)
   end
 
   # https://bitcoin.org/img/dev/en-hd-private-parent-to-private-child.svg
   def derive_child(node, i \\ 0, only_public \\ false) do
     one_way_hash = p_build_one_way_hash(node.private_key, node.public_key, node.chain_code, i)
-    
+
     order = case node.curve_name do
       :secp256k1 -> @order_secp256k1
       :secp256r1 -> @order_secp256r1
@@ -146,12 +147,12 @@ defmodule Bip32.Node do
   # 是否hardened由i决定；是否只是公钥派生，由m/M决定，而且只对最后一个节点有效
   def derive_descendant_by_path(node, path) do
     [head | tail] = String.split(path, "/")
-    
+
     case head do
       "m" -> p_derive(node, tail)
       "M" -> p_derive(node, tail, true) # 只对最后一个节点有效
     end
-    
+
   end
 
 end
